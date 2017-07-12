@@ -19,12 +19,20 @@ package main
 import (
 	"errors"
 	"fmt"
-
+	
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
+}
+
+// 病人信息结构体
+type Patient struct {
+   Name string
+   Sex string
+   Age int
+   Illness string
 }
 
 // ============================================================================================================================
@@ -78,7 +86,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var key, value string
+	var key string
     var err error
 	fmt.Println("running write()")
 
@@ -87,8 +95,9 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 	}
 
 	key = args[0]
-	value = string(args[1])
-	err = stub.PutState(key, []byte(value))
+	
+	//value = args[1]
+	err = stub.PutState(key, []byte(args[1]))
 	if err != nil {
 		return nil, err
 	}
