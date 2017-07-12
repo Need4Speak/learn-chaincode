@@ -97,7 +97,8 @@ func (t *SimpleChaincode) addPatient(stub shim.ChaincodeStubInterface, args []st
 	value = args[1]
 
 	valAsbytes, err := stub.GetState(key)
-	jsonResp = "{\"Error\":\"valAsbytes="+ string(valAsbytes) +"\"}"
+	//jsonResp = "{\"Error\":\"valAsbytes="+ string(valAsbytes) +"\"}"
+	jsonResp = "{\"Error\":\"valAsbytes\"}"
     return nil, errors.New(jsonResp)
     if err != nil {
         jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
