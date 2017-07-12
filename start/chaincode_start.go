@@ -19,7 +19,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
@@ -64,8 +63,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// Handle different functions
 	if function == "init" {													//initialize the chaincode state, used as reset
 		return t.Init(stub, "init", args)
-	} else if function == "write" {
-		return t.write(stub, args)
+	} else if function == "addPatient" {
+		return t.addPatient(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function)					//error
 
@@ -85,8 +84,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	return nil, errors.New("Received unknown function query: " + function)
 }
 
-func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var key string
+func (t *SimpleChaincode) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var key, value, jsonResp string
     var err error
 	fmt.Println("running write()")
 
@@ -95,9 +94,21 @@ func (t *SimpleChaincode) write(stub shim.ChaincodeStubInterface, args []string)
 	}
 
 	key = args[0]
-	
-	//value = args[1]
-	err = stub.PutState(key, []byte(args[1]))
+	value = args[1]
+
+	valAsbytes, err := stub.GetState(key)
+    if err != nil {
+        jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
+        return nil, errors.New(jsonResp)
+    }
+
+	// 如果病人身份证ID已经存在于数据库中，则返回错误信息
+	if valAsbytes != nil {
+		jsonResp = "{\"Error\":\"Patient Id already exited! \"}"
+        return nil, errors.New(jsonResp)
+	}
+
+	err = stub.PutState(key, []byte(value))
 	if err != nil {
 		return nil, err
 	}
