@@ -182,9 +182,9 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
 			jsonResp = "{\"Error\":\"Failed to get state for " + ele + "\"}"
 			return nil, errors.New(jsonResp)
 		}
-		recordsContent = recordsContent + "; \n 就诊时间：" + ele[len(ele)-12:len(ele)] + ", 病情：" + string(valAsbytes)
+		recordsContent =  " 就诊时间：" + ele[len(ele)-12:len(ele)] + ", 病情：" + string(valAsbytes) + "||" +recordsContent
 	}
 
     // return valAsbytes, nil
-	return []byte(recordsContent+string(valAsbytes)), nil
+	return []byte(string(valAsbytes) + recordsContent), nil
 }
