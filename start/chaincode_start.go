@@ -22,6 +22,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"time"
 	"encoding/json"
+	"strings"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -35,6 +36,12 @@ type Patient struct {
    Age int
    Illness string
    Records string
+}
+
+// 病人就诊记录结构体
+type Record struct {
+   Illness string
+   recordTime string
 }
 
 // ============================================================================================================================
@@ -161,5 +168,23 @@ func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) 
         return nil, errors.New(jsonResp)
     }
 
-    return valAsbytes, nil
+	var patient Patient
+	json.Unmarshal(valAsbytes, &patient)
+	records := patient.Records
+	recordArr := strings.Split(records, ", ")
+	// records 字符串以" ,"开头，故需要去掉第一个元素
+	recordArr = recordArr[1:len(recordArr)]
+
+	var recordsContent string
+	for _, ele := range recordArr {
+		 valAsbytes, err := stub.GetState(ele)
+		if err != nil {
+			jsonResp = "{\"Error\":\"Failed to get state for " + ele + "\"}"
+			return nil, errors.New(jsonResp)
+		}
+		recordsContent = recordsContent + "; \n 就诊时间：" + ele[len(ele)-12:len(ele)] + ", 病情：" + string(valAsbytes)
+	}
+
+    // return valAsbytes, nil
+	return []byte(recordsContent+string(valAsbytes)), nil
 }
