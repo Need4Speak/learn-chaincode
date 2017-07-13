@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"time"
+	"encoding/json"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -32,6 +34,7 @@ type Patient struct {
    Sex string
    Age int
    Illness string
+   Records string
 }
 
 // ============================================================================================================================
@@ -65,6 +68,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.Init(stub, "init", args)
 	} else if function == "addPatient" {
 		return t.addPatient(stub, args)
+	} else if function == "addRecord" {
+		return t.addRecord(stub, args)
 	}
 	fmt.Println("invoke did not find func: " + function)					//error
 
@@ -96,6 +101,45 @@ func (t *SimpleChaincode) addPatient(stub shim.ChaincodeStubInterface, args []st
 	key = args[0]
 	value = args[1]
 	err = stub.PutState(key, []byte(value))
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+// 根据病人id插入其某次看病的记录
+func (t *SimpleChaincode) addRecord(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var key, value, curTime string
+    var err error
+	fmt.Println("running addRecord()")
+
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. name of the key and value to set")
+	}
+
+	key = args[0]
+	curTime = time.Now().Format("200601020304")
+	// newKey: 就诊记录的 key, 为string类型
+	newKey := key + curTime
+
+	// 根据key获取就诊病人的信息，在其Records中加入新的就诊记录后，再重新存储
+	valAsbytes, err := stub.GetState(key)
+    if err != nil {
+        jsonResp := "{\"Error\":\"Failed to get state for " + key + "\"}"
+        return nil, errors.New(jsonResp)
+    }
+
+	var patient Patient
+	json.Unmarshal(valAsbytes, &patient)
+	patient.Records = patient.Records + ", " + newKey
+	b, _ := json.Marshal(&patient)
+	err = stub.PutState(key, b)
+	if err != nil {
+		return nil, err
+	}
+
+	value = args[1]
+	err = stub.PutState(newKey, []byte(value))
 	if err != nil {
 		return nil, err
 	}
