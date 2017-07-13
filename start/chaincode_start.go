@@ -85,8 +85,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 func (t *SimpleChaincode) addPatient(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	// var key, value, jsonResp string
-	var key, jsonResp string
+	var key, value string
     var err error
 	fmt.Println("running write()")
 
@@ -95,32 +94,12 @@ func (t *SimpleChaincode) addPatient(stub shim.ChaincodeStubInterface, args []st
 	}
 
 	key = args[0]
-	// value = args[1]
-
-	valAsbytes, err := stub.GetState(key)
-	jsonResp = "{\"Error\":\"valAsbytes="+ string(valAsbytes) +"\"}"
+	value = args[1]
+	err = stub.PutState(key, []byte(value))
 	if err != nil {
-		fmt.Println("test")
+		return nil, err
 	}
-	
-	jsonResp = "{\"Error\":\"valAsbytes\"}"
-    return nil, errors.New(jsonResp)
-    // if err != nil {
-    //     jsonResp = "{\"Error\":\"Failed to get state for " + key + "\"}"
-    //     return nil, errors.New(jsonResp)
-    // }
-
-	// // 如果病人身份证ID已经存在于数据库中，则返回错误信息
-	// if valAsbytes != nil {
-	// 	jsonResp = "{\"Error\":\"Patient Id already exited! \"}"
-    //     return nil, errors.New(jsonResp)
-	// }
-
-	// err = stub.PutState(key, []byte(value))
-	// if err != nil {
-	// 	return nil, err
-	// }
-//	return nil, nil
+	return nil, nil
 }
 
 func (t *SimpleChaincode) read(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
